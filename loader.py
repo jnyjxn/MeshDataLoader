@@ -68,11 +68,20 @@ class RenderImage(object):
 	"""     
 
 	def __init__(self, image_size=[250,250], pixel_size=[.25,.25], focal_length=[4100,4100], sequence_type="list",
-				ppa_list=[0,20], psa_list=[0,0], ppa_range=[-20,20], psa_range=[0,0], seed=0, n_images=2):
-		"""
-		Args:
-			mesh_paths (dict): A dictionary where the key is an index and the value is a string containing a path to a .stl file
-		"""        
+				ppa_list=[0,20], psa_list=[0,0], ppa_range=[-20,20], psa_range=[0,0], seed=0, n_images=2):  
+	    """
+        Args:
+            image_size (list, optional): m x n pixels of the output images as [width, height]. Defaults to [250,250].
+            pixel_size (list, optional): Physical size of the pixels in mm. Defaults to [.25,.25].
+            focal_length (list, optional): Focal length of the camera in mm. Defaults to [4100,4100].
+            sequence_type (str, optional): "list" if supplying a set of <PPA&PSA> or "random" to generate a set. Defaults to "list".
+            ppa_list (list, optional): If "sequence_type" is "list", a list of PPAs to generate projections - zipped with psa_list. Defaults to [0,20].
+            psa_list (list, optional): If "sequence_type" is "list", a list of PSAs to generate projections - zipped with ppa_list. Defaults to [0,0].
+            ppa_range (list, optional): If "sequence_type" is "random", the range of PPAs to generate projections from. Defaults to [-20,20].
+            psa_range (list, optional): If "sequence_type" is "random", the range of PSAs to generate projections from. Defaults to [0,0].
+            seed (int, optional): If "sequence_type" is "random", the random seed for the generator. 0 seeds from system clock. Defaults to 0.
+            n_images (int, optional): If "sequence_type" is "random", the number of images to generate. Defaults to 2.
+        """         
 		self._scene = None
 		self._renderer = None
 		self._light_obj = None
@@ -140,19 +149,23 @@ class RenderImage(object):
 		return image.astype(np.uint8)  
 
 
-class ThreadsafeRenderImage(object):
-	"""
-	The ThreadsafeRenderImage transform renders an image or multiple images of the passed mesh using the PyRender library.
-	This thread-safe version does not persist the pyrender.Scene, pyrender.OffscreenRenderer, etc. objects but instead
-	creates local versions on each __call__
-	"""     
+class ThreadsafeRenderImage(object): 
 
 	def __init__(self, image_size=[250,250], pixel_size=[.25,.25], focal_length=[4100,4100], sequence_type="list",
 				ppa_list=[0,20], psa_list=[0,0], ppa_range=[-20,20], psa_range=[0,0], seed=0, n_images=2):
-		"""
-		Args:
-			mesh_paths (dict): A dictionary where the key is an index and the value is a string containing a path to a .stl file
-		"""
+        """
+        Args:
+            image_size (list, optional): m x n pixels of the output images as [width, height]. Defaults to [250,250].
+            pixel_size (list, optional): Physical size of the pixels in mm. Defaults to [.25,.25].
+            focal_length (list, optional): Focal length of the camera in mm. Defaults to [4100,4100].
+            sequence_type (str, optional): "list" if supplying a set of <PPA&PSA> or "random" to generate a set. Defaults to "list".
+            ppa_list (list, optional): If "sequence_type" is "list", a list of PPAs to generate projections - zipped with psa_list. Defaults to [0,20].
+            psa_list (list, optional): If "sequence_type" is "list", a list of PSAs to generate projections - zipped with ppa_list. Defaults to [0,0].
+            ppa_range (list, optional): If "sequence_type" is "random", the range of PPAs to generate projections from. Defaults to [-20,20].
+            psa_range (list, optional): If "sequence_type" is "random", the range of PSAs to generate projections from. Defaults to [0,0].
+            seed (int, optional): If "sequence_type" is "random", the random seed for the generator. 0 seeds from system clock. Defaults to 0.
+            n_images (int, optional): If "sequence_type" is "random", the number of images to generate. Defaults to 2.
+        """  
 		self.image_size = image_size
 		self.pixel_size = pixel_size
 		self.focal_length = focal_length
@@ -217,29 +230,36 @@ class ThreadsafeRenderImage(object):
 		return image.astype(np.uint8)  
 
 
-root_path = Path("../CoronaryVesselGeneration/AngioGenAppNew/output/testing/")
+def main():
+    root_path = Path("../CoronaryVesselGeneration/AngioGenAppNew/output/testing/")
 
-keys = range(100)
-values = [str(root_path / f"{(i+1):04}" / "mesh.stl") for i in keys]
+    keys = range(100)
+    values = [str(root_path / f"{(i+1):04}" / "mesh.stl") for i in keys]
 
-meshes = dict(zip(keys, values))
-dataset = MeshDataset(meshes)
+    meshes = dict(zip(keys, values))
+    input()
+    dataset = MeshDataset(meshes)
+    input()
 
-dataloader = DataLoader(dataset, batch_size=100, num_workers=2)
+    dataloader = DataLoader(dataset, batch_size=100, num_workers=0)
 
-import time
-from PIL import Image
+    # Evaluate how long this all takes
+    import time
+    from PIL import Image
 
-for batch in dataloader:
-	print(batch.shape)
-	for i in range(3):
-		im = Image.fromarray(batch.numpy()[i,:,:,0].astype(np.uint8),'L')
-		file_name = f'{i:03d}.png'
+    for batch in dataloader:
+        print(batch.shape)
+        for i in range(3):
+            im = Image.fromarray(batch.numpy()[i,:,:,0].astype(np.uint8),'L')
+            file_name = f'{i:03d}.png'
 
-		im.save(file_name)
+            im.save(file_name)
 
-t1 = time.time()
-for batch in dataloader:
-	t2 = time.time()
-	input(t2-t1)
-	t1 = time.time()
+    t1 = time.time()
+    for batch in dataloader:
+        t2 = time.time()
+        input(t2-t1) # Allows memory to be checked externally
+        t1 = time.time()
+
+if __name__ == "__main__":
+    main()
