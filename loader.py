@@ -150,6 +150,11 @@ class RenderImage(object):
 
 
 class ThreadsafeRenderImage(object): 
+	"""
+	The ThreadsafeRenderImage transform renders an image or multiple images of the passed mesh using the PyRender library.
+	This thread-safe version does not persist the pyrender.Scene, pyrender.OffscreenRenderer, etc. objects but instead
+	creates local versions on each __call__
+	"""     
 
 	def __init__(self, image_size=[250,250], pixel_size=[.25,.25], focal_length=[4100,4100], sequence_type="list",
 				ppa_list=[0,20], psa_list=[0,0], ppa_range=[-20,20], psa_range=[0,0], seed=0, n_images=2):
