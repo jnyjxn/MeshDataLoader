@@ -106,7 +106,6 @@ class RenderImage(object):
 			#TODO: implement random generation using seed
 			pass
 
-		self._instantiate_pyrender_scene()
 
 	def _instantiate_pyrender_scene(self):
 		self._scene = pyrender.Scene()
@@ -125,6 +124,8 @@ class RenderImage(object):
 		self._cam_obj = self._scene.add(cam)
 
 	def __call__(self, mesh):
+        if self._scene is None: self._instantiate_pyrender_scene()
+
 		mesh_obj = self._scene.add(mesh)
 
 		imgs = []
